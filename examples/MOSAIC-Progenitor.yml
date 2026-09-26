@@ -1,1 +1,42 @@
+# config.yaml
+project_name: MOSAIC-Progenitor
+model: deepseek-ai/DeepSeek-V4.1-Flash
+output_path: ./output
+sequence_length: 8192
 
+dataset:
+  train_dataset:
+    repo_id: arcee-ai/Qwen3-235B-Logits-Packed-8192  # Pre-captured teacher outputs
+    split: train
+  prepacked: true
+
+teacher:
+  kind: dataset
+  logprob_compressor:
+    d: 151936  # Vocabulary size
+    delta_encoding: true
+    error_diffusion: false
+    exact_dtype: float32
+    exact_k: 32
+    k: 128
+    polynomial_terms: [0, 1, 2]
+    residual_bins: []
+    term_dtype: float32
+
+loss_functions:
+  - function: cross_entropy
+    weight: 0.5
+  - function: kl
+    weight: 0.5
+    temperature: 1.0
+    missing_probability_handling: zero
+    sparse_chunk_length: 1024
+
+training_args:
+  num_train_epochs: 1
+  per_device_train_batch_size: 1
+  gradient_accumulation_steps: 8
+  learning_rate: 2.0e-6
+  bf16: true
+  optim: adamw_torch
+  gradient_checkpointing: true
